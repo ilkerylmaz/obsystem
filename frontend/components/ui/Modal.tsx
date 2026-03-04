@@ -1,0 +1,86 @@
+"use client";
+import React, { useEffect } from "react";
+
+interface ModalProps {
+    open: boolean;
+    onClose: () => void;
+    title: string;
+    children: React.ReactNode;
+    size?: "sm" | "md" | "lg";
+    footer?: React.ReactNode;
+}
+
+const sizeClasses = {
+    sm: "max-w-sm",
+    md: "max-w-lg",
+    lg: "max-w-2xl",
+};
+
+export function Modal({ open, onClose, title, children, size = "md", footer }: ModalProps) {
+    // ESC tuşu ile kapatma
+    useEffect(() => {
+        if (!open) return;
+        const handler = (e: KeyboardEvent) => {
+            if (e.key === "Escape") onClose();
+        };
+        document.addEventListener("keydown", handler);
+        return () => document.removeEventListener("keydown", handler);
+    }, [open, onClose]);
+
+    // Scroll kilidi
+    useEffect(() => {
+        document.body.style.overflow = open ? "hidden" : "";
+        return () => { document.body.style.overflow = ""; };
+    }, [open]);
+
+    if (!open) return null;
+
+    return (
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            role="dialog"
+            aria-modal="true"
+        >
+            {/* Overlay */}
+            <div
+                className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"
+                onClick={onClose}
+            />
+
+            {/* Modal box */}
+            <div
+                className={`
+          relative w-full ${sizeClasses[size]} bg-white rounded-lg
+          shadow-modal border border-[var(--surface-border)]
+          animate-fade-in
+        `}
+            >
+                {/* Header */}
+                <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--surface-border)]">
+                    <h2 className="text-base font-semibold text-[var(--text-primary)]">{title}</h2>
+                    <button
+                        onClick={onClose}
+                        className="rounded-md p-1.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-muted)] transition-colors"
+                        aria-label="Kapat"
+                    >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                {/* Body */}
+                <div className="px-5 py-4 max-h-[70vh] overflow-y-auto">
+                    {children}
+                </div>
+
+                {/* Footer */}
+                {footer && (
+                    <div className="flex items-center justify-end gap-2 px-5 py-3 border-t border-[var(--surface-border)] bg-[var(--surface-muted)] rounded-b-lg">
+                        {footer}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}

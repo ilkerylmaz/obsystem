@@ -31,6 +31,10 @@ export function getPayload(): JwtPayload | null {
     }
 }
 
+export function getUsername(): string | null {
+    return getPayload()?.sub ?? null;
+}
+
 export function getRole(): Role | null {
     return getPayload()?.role ?? null;
 }
