@@ -1,15 +1,20 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { StatCard } from "@/components/ui/StatCard";
 import { Badge } from "@/components/ui/Badge";
 import { useTranslation } from "@/lib/i18n";
-
+import { useDateTime } from "@/hooks/useDateTime";
+import { useStudent } from "@/app/context/studentContext";
+import { getStudentLessonsById } from "@/app/services/lessonService";
+import { useAuth } from "@/hooks/useAuth";
 // Mock dataf
 const upcoming = [
     { id: 1, course: "BIL301 — Veri Yapıları", day: "Pazartesi", time: "09:00 – 10:50", room: "A101", teacher: "Prof. Dr. Mehmet Öz" },
     { id: 2, course: "MAT201 — Diferansiyel Denklemler", day: "Salı", time: "13:00 – 14:50", room: "B203", teacher: "Doç. Dr. Ayşe Kaya" },
     { id: 3, course: "FIZ101 — Fizik I", day: "Çarşamba", time: "10:00 – 11:50", room: "C301", teacher: "Doç. Dr. Ali Çelik" },
 ];
+
+
 
 function BookOpenIcon() {
     return <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>;
@@ -22,20 +27,31 @@ function ExclamIcon() {
 }
 
 export default function StudentDashboard() {
+    const { time, date, day, hour } = useDateTime();
+    const { studentInfo } = useStudent();
     const { t } = useTranslation();
+    const { userId, role, loading } = useAuth();
+    const [count, setCount] = useState(0);
+    useEffect(() => {
+        if (!userId) return;
+        getStudentLessonsById(userId).then((data) => {
+            const list = Array.isArray(data) ? data : data?.data ?? [];
+            setCount(list.length);
+        });
+    }, [userId]);
     return (
         <div className="space-y-6 animate-fade-in">
             {/* Hoşgeldin */}
             <div>
                 <h2 className="page-title">{t.dashboard.student.title}</h2>
-                <p className="text-sm text-[var(--text-muted)] mt-1">Hoş geldiniz, Ahmet. Bugün Salı, 4 Mart 2025.</p>
+                <p className="text-sm text-[var(--text-muted)] mt-1">Hoş geldiniz, {studentInfo?.fullName} Bugün {day}, {date}.</p>
             </div>
 
             {/* Stat Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <StatCard
                     title={t.dashboard.student.enrolled}
-                    value="5"
+                    value={count}
                     icon={<BookOpenIcon />}
                     color="blue"
                     description="Bu dönem aktif ders"

@@ -11,4 +11,5 @@ public interface LessonController {
     public void addLessonToStudent(LessonCreateRequestDTO createLessonDto);
     public ResponseEntity<String> updateLesson(LessonUpdateRequestDTO updateLessonDto);
     public List<LessonsDTO> listLessons();
+    public Long getLessonCount(Long studentId);
 }

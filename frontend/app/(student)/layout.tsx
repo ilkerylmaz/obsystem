@@ -70,6 +70,8 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
         getStudentLessonsById(userId).then((data) => {
             const list = Array.isArray(data) ? data : data?.data ?? [];
             setLessons(list ?? []);
+
+            console.log(list.count());
         });
     }, [userId]);
 

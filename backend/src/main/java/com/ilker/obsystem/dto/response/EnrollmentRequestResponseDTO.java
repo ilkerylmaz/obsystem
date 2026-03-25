@@ -11,6 +11,8 @@ public record EnrollmentRequestResponseDTO(
         Long teacherLessonId,
         String courseCode,
         String lessonName,
+        Long credit,
+        Long ects,
         String semesterName,
         String teacherFullName,
         RequestStatus status,

@@ -22,5 +22,7 @@ public interface EnrollmentRequestMapper {
     @Mapping(source = "reviewedBy.fullName", target = "reviewedByFullName")
     @Mapping(source = "requestedAt", target = "requestedAt")
     @Mapping(source = "reviewedAt", target = "reviewedAt")
+    @Mapping(source = "teacherLesson.lesson.credit", target = "credit")
+    @Mapping(source = "teacherLesson.lesson.ects", target = "ects")
     EnrollmentRequestResponseDTO toResponse(EnrollmentRequest enrollmentRequest);
 }

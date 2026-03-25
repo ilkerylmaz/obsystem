@@ -6,6 +6,7 @@ import com.ilker.obsystem.dto.response.LessonsDTO;
 import com.ilker.obsystem.entity.Lesson;
 import com.ilker.obsystem.mapper.LessonMapper;
 import com.ilker.obsystem.repository.LessonRepository;
+import com.ilker.obsystem.repository.NoteListRepository;
 import com.ilker.obsystem.service.LessonService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ import java.util.List;
 public class LessonServiceImpl implements LessonService {
     @Autowired
     private final LessonRepository lessonRepository;
+    private final NoteListRepository noteListRepository;
     private final LessonMapper lessonMapper;
 
     @Override
@@ -54,5 +56,10 @@ public class LessonServiceImpl implements LessonService {
     public List<LessonsDTO> listLessons() {
         List<Lesson> lesson = lessonRepository.findAll();
         return lessonMapper.toListEntity(lesson);
+    }
+
+    @Override
+    public Long getLessonCount(Long studentId) {
+        return noteListRepository.getStudentLessonsCount(studentId);
     }
 }

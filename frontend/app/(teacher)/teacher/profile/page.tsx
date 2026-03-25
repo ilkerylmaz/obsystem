@@ -1,8 +1,9 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { useTranslation } from "@/lib/i18n";
-
+import { getTeacherInfoById } from "@/app/services/teacherService";
+import { useAuth } from "@/hooks/useAuth";
 const teacher = {
     fullname: "Prof. Dr. Mehmet Öz",
     email: "mehmet.oz@universite.edu.tr",
@@ -10,6 +11,15 @@ const teacher = {
     title: "Profesör",
     joinedAt: "2012-09-01",
 };
+
+type TeacherInfo = {
+    fullName?: string;
+    title?: string;
+    email?: string;
+    createdAt?: string
+    departmentName?: string;
+    facultyName?: string;
+}
 
 const courses = [
     { id: 1, code: "BIL301", name: "Veri Yapıları", semester: "Güz", students: 42 },
@@ -28,6 +38,18 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 
 export default function TeacherProfilePage() {
     const { t } = useTranslation();
+    const { userId, loading } = useAuth();
+    const [info, setInfo] = useState<TeacherInfo | null>(null);
+
+    useEffect(() => {
+        if (!userId) return;
+        getTeacherInfoById(userId).then((data) => {
+            const info = Array.isArray(data) ? data[0] : data;
+            setInfo(info ?? null);
+        })
+        console.log(info)
+    }, [userId])
+
     return (
         <div className="space-y-6 animate-fade-in max-w-2xl">
             <div>
@@ -41,22 +63,22 @@ export default function TeacherProfilePage() {
                     {teacher.fullname.split(" ").filter(w => /^[A-ZÇĞİÖŞÜ]/.test(w)).pop()?.[0] ?? "Ö"}
                 </div>
                 <div>
-                    <p className="text-lg font-bold text-[var(--text-primary)]">{teacher.fullname}</p>
-                    <p className="text-sm text-[var(--text-muted)]">{teacher.department}</p>
+                    <p className="text-lg font-bold text-[var(--text-primary)]">{info?.fullName}</p>
+                    <p className="text-sm text-[var(--text-muted)]">{info?.departmentName}</p>
                     <div className="mt-2 flex gap-2">
                         <Badge variant="success" size="sm">Öğretmen</Badge>
-                        <Badge variant="gray" size="sm">{teacher.title}</Badge>
+                        <Badge variant="gray" size="sm">{info?.title}</Badge>
                     </div>
                 </div>
             </div>
 
             {/* Bilgiler */}
             <div className="obs-card px-5">
-                <InfoRow label={t.teacherProfile.fullname} value={teacher.fullname} />
-                <InfoRow label="E-posta" value={teacher.email} />
-                <InfoRow label={t.teacherProfile.department} value={teacher.department} />
-                <InfoRow label="Ünvan" value={teacher.title} />
-                <InfoRow label="Başlangıç" value={teacher.joinedAt} />
+                <InfoRow label={t.teacherProfile.fullname} value={info?.fullName!} />
+                <InfoRow label="E-posta" value={info?.email!} />
+                <InfoRow label={t.teacherProfile.department} value={info?.departmentName!} />
+                <InfoRow label="Ünvan" value={info?.title!} />
+                <InfoRow label="Başlangıç" value={info?.createdAt?.slice(0, 10)!} />
             </div>
 
             {/* Dersler */}

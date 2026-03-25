@@ -38,5 +38,11 @@ public class LessonControllerImpl implements LessonController {
         return lessonService.listLessons();
     }
 
+    @Override
+    @GetMapping(path = "/lesson/{studentId}/count")
+    public Long getLessonCount(@PathVariable Long studentId) {
+        return lessonService.getLessonCount(studentId);
+    }
+
 
 }

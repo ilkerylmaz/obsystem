@@ -10,5 +10,5 @@ public interface LessonService {
     public void addLessonToStudent(LessonCreateRequestDTO createLessonDto);
     public void updateLesson(LessonUpdateRequestDTO updateLessonDto);
     public List<LessonsDTO> listLessons();
-
+    public Long getLessonCount(Long studentId);
 }
