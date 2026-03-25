@@ -4,7 +4,7 @@ import { StatCard } from "@/components/ui/StatCard";
 import { Badge } from "@/components/ui/Badge";
 import { useTranslation } from "@/lib/i18n";
 
-// Mock data
+// Mock dataf
 const upcoming = [
     { id: 1, course: "BIL301 — Veri Yapıları", day: "Pazartesi", time: "09:00 – 10:50", room: "A101", teacher: "Prof. Dr. Mehmet Öz" },
     { id: 2, course: "MAT201 — Diferansiyel Denklemler", day: "Salı", time: "13:00 – 14:50", room: "B203", teacher: "Doç. Dr. Ayşe Kaya" },

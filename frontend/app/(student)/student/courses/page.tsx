@@ -1,19 +1,13 @@
 "use client";
-import React, { useState } from "react";
+import React, { use, useState } from "react";
 import { Table } from "@/components/ui/Table";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { Select } from "@/components/ui/Input";
 import { useTranslation } from "@/lib/i18n";
+import { useLesson } from "@/app/context/lessonContext";
 
-const enrolled = [
-    { id: 1, code: "BIL301", name: "Veri Yapıları", teacher: "Prof. Dr. Mehmet Öz", semester: "2024-2025 Güz", credits: 4 },
-    { id: 2, code: "MAT201", name: "Diferansiyel Denklemler", teacher: "Doç. Dr. Ayşe Kaya", semester: "2024-2025 Güz", credits: 3 },
-    { id: 3, code: "FIZ101", name: "Fizik I", teacher: "Doç. Dr. Ali Çelik", semester: "2024-2025 Güz", credits: 4 },
-    { id: 4, code: "ING101", name: "İngilizce I", teacher: "Dr. Sara Arslan", semester: "2024-2025 Güz", credits: 2 },
-    { id: 5, code: "BIL101", name: "Programlamaya Giriş", teacher: "Prof. Dr. Mehmet Öz", semester: "2024-2025 Güz", credits: 4 },
-];
 
 const available = [
     { id: 6, code: "BIL302", name: "Algoritmalar" },
@@ -24,7 +18,18 @@ const available = [
 export default function CoursesPage() {
     const { t } = useTranslation();
     const [modalOpen, setModalOpen] = useState(false);
+    const { lessons } = useLesson();
     const [selected, setSelected] = useState("");
+
+    const enrolled = lessons.map((l, i) => ({
+        id: i + 1,
+        code: l.courseCode ?? "—",
+        name: l.lessonName ?? "—",
+        teacher: l.teacherFullName ?? "—",
+        semester: l.semesterName ?? "_",
+        credits: l.ects ?? l.credit ?? 0,
+    }))
+
 
     const columns = [
         { key: "code", header: t.courses.code, className: "font-mono font-semibold text-primary-700" },

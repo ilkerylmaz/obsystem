@@ -54,7 +54,5 @@ public class LessonServiceImpl implements LessonService {
     public List<LessonsDTO> listLessons() {
         List<Lesson> lesson = lessonRepository.findAll();
         return lessonMapper.toListEntity(lesson);
-
-
     }
 }

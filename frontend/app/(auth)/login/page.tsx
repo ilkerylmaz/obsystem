@@ -5,8 +5,31 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
-import { setToken, getRole } from "@/lib/auth";
+import { setToken } from "@/lib/auth";
 import { AuthResponse } from "@/types/user";
+
+const ROLE_PREFIX = "ROLE_";
+
+function normalizeRole(rawRole: string): string | null {
+    const cleanedRole = rawRole.trim().toUpperCase().replace(ROLE_PREFIX, "");
+    if (["ADMIN", "TEACHER", "STUDENT"].includes(cleanedRole)) {
+        return cleanedRole.toLowerCase();
+    }
+    return null;
+}
+
+function getFirstRole(rawRoles: unknown): string | null {
+    if (Array.isArray(rawRoles)) {
+        const firstRole = rawRoles.find((value): value is string => typeof value === "string" && value.trim().length > 0);
+        return firstRole ?? null;
+    }
+
+    if (typeof rawRoles === "string" && rawRoles.trim().length > 0) {
+        return rawRoles.split(",")[0]?.trim() ?? null;
+    }
+
+    return null;
+}
 
 // İkon
 function LockIcon() {
@@ -43,16 +66,21 @@ export default function LoginPage() {
                 password
             });
 
-            // 1. Token'ı localStorage'a kaydet (API istekleri için)
-            setToken(res.token);
+            const payload: any = (res as any).data ?? res;
+            const token = payload?.token;
+            const roleRaw = payload?.roles;
 
-            // 2. Middleware'in okuyabilmesi için cookie'ye ekle
-            // Not: Production'da 'Secure; HttpOnly' tercih edilir ama client-side'dan direkt set ediyoruz.
-            document.cookie = `token=${res.token}; path=/; max-age=86400`;
+            const firstRole = getFirstRole(roleRaw);
+            const role = firstRole ? normalizeRole(firstRole) : null;
 
-            // 3. Role göre yönlendir (ADMIN -> /admin/dashboard, vb.)
-            const role = res.role;
-            router.push(`/${role}/dashboard`);
+            if (!token || !role) throw new Error("Eksik login cevabı (token/role)");
+
+            setToken(token);
+            document.cookie = `token=${token}; Path=/; Max-Age=86400; SameSite=Lax`;
+
+            router.replace(`/${role}/dashboard`);
+            router.refresh();
+
 
         } catch (err: any) {
             console.error("Giriş hatası:", err);

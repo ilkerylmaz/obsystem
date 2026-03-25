@@ -4,12 +4,16 @@ import java.math.BigDecimal;
 
 public record StudentCourseDTO(
         String courseCode,
-        String courseName,
+        String lessonName,
         String semesterName,
+        String departmentName,
+        String teacherFullName,
         BigDecimal midtermNote,
         BigDecimal finalNote,
         BigDecimal average,
-        String letterGrade
+        String letterGrade,
+        Short credit,
+        Short ects
 
 ) {
 }

@@ -1,10 +1,12 @@
 export interface Student {
-    id: number;
     studentNo: string;
-    fullname: string;
+    fullName: string;
     email: string;
     telephone: string;
-    advisorId: number | null;
+    departmentName: string;
+    advisorFullName: string;
+    enrollmentYear: number;
+    classYear: number;
     createdAt: string;
-    updatedAt: string;
+
 }

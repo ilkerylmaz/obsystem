@@ -5,16 +5,8 @@ import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
 import { Modal } from "@/components/ui/Modal";
 import { useTranslation } from "@/lib/i18n";
+import { useStudent } from "@/app/context/studentContext";
 
-const mockStudent = {
-    studentNo: "2021050034",
-    fullname: "Ahmet Yılmaz",
-    email: "ahmet.yilmaz@universite.edu.tr",
-    telephone: "0532 123 45 67",
-    advisor: "Prof. Dr. Mehmet Öz",
-    department: "Bilgisayar Mühendisliği",
-    registeredAt: "2021-09-13",
-};
 
 function InfoRow({ label, value }: { label: string; value: string }) {
     return (
@@ -27,8 +19,9 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 
 export default function StudentProfilePage() {
     const { t } = useTranslation();
+    const { studentInfo } = useStudent();
     const [editOpen, setEditOpen] = useState(false);
-    const [form, setForm] = useState({ fullname: mockStudent.fullname, telephone: mockStudent.telephone });
+    const [form, setForm] = useState({ fullname: studentInfo?.fullName, telephone: studentInfo?.telephone });
 
     return (
         <div className="space-y-6 animate-fade-in max-w-2xl">
@@ -54,11 +47,11 @@ export default function StudentProfilePage() {
             {/* Avatar + temel bilgi */}
             <div className="obs-card p-5 flex items-center gap-5">
                 <div className="w-16 h-16 rounded-full bg-primary-700 flex items-center justify-center text-white font-bold text-2xl shrink-0">
-                    {mockStudent.fullname[0]}
+                    {studentInfo?.fullName?.[0]}
                 </div>
                 <div>
-                    <p className="text-lg font-bold text-[var(--text-primary)]">{mockStudent.fullname}</p>
-                    <p className="text-sm text-[var(--text-muted)]">{mockStudent.department}</p>
+                    <p className="text-lg font-bold text-[var(--text-primary)]">{studentInfo?.fullName}</p>
+                    <p className="text-sm text-[var(--text-muted)]">{studentInfo?.departmentName}</p>
                     <div className="mt-2">
                         <Badge variant="info" size="sm">Öğrenci</Badge>
                     </div>
@@ -67,13 +60,13 @@ export default function StudentProfilePage() {
 
             {/* Detay bilgiler */}
             <div className="obs-card px-5">
-                <InfoRow label={t.profile.studentNo} value={mockStudent.studentNo} />
-                <InfoRow label={t.profile.fullname} value={mockStudent.fullname} />
-                <InfoRow label={t.profile.email} value={mockStudent.email} />
-                <InfoRow label={t.profile.phone} value={mockStudent.telephone} />
-                <InfoRow label={t.profile.advisor} value={mockStudent.advisor} />
-                <InfoRow label="Bölüm" value={mockStudent.department} />
-                <InfoRow label="Kayıt Tarihi" value={mockStudent.registeredAt} />
+                <InfoRow label={t.profile.studentNo} value={studentInfo?.studentNo || ""} />
+                <InfoRow label={t.profile.fullname} value={studentInfo?.fullName || ""} />
+                <InfoRow label={t.profile.email} value={studentInfo?.email || ""} />
+                <InfoRow label={t.profile.phone} value={studentInfo?.telephone || ""} />
+                <InfoRow label={t.profile.advisor} value={studentInfo?.advisorFullName || ""} />
+                <InfoRow label="Bölüm" value={studentInfo?.departmentName || ""} />
+                <InfoRow label="Kayıt Tarihi" value={studentInfo?.createdAt || ""} />
             </div>
 
             {/* Edit Modal */}

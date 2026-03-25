@@ -626,3 +626,17 @@ src/main/java/com/obs/
 ├── exception/           # Custom exceptionlar ve GlobalExceptionHandler
 ├── security/            # JWT, UserDetails ve Auth filtreleri
 └── util/                # Yardımcı sınıflar (Constants, DateUtils)
+
+
+
+
+### Kendimden Notlar
+
+# bu OBS sisteminde 3. haftam ve Token management alanında gelişmeler kaydediyorum
+
+Şöyleki JWT token entegrasyonunu tamamladım sayılır, şuan token içine kullanıcı id'sini gömdüm
+böylece id için ekstra upraş vermeden id bilgisine ulaşabileceğim.
+Token'ı cookie içerisinde tutuyorum böylece XSS saldırılarına karşı önlem almış oluyorum, bu en
+güvenli yöntem.
+Ayrıca önyüz tarafında tokenları kullanmam gerektiği her seferde token ayıklamak ile uğraşmamak için
+önyüzde bir hook oluşturdum ve singleton yapısını kullandım.

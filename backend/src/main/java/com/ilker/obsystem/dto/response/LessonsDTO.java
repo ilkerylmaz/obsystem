@@ -8,6 +8,8 @@ public record LessonsDTO(
         Short credit,
         Short ects,
         Long departmentId,
-        LessonType lessonType
+        String semesterName,
+        LessonType lessonType,
+        String teacherFullName
 ) {
 }

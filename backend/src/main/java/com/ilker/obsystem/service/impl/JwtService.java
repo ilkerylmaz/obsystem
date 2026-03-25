@@ -1,12 +1,12 @@
 package com.ilker.obsystem.service.impl;
 
-import java.util.Collection;
-import java.util.Date;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.crypto.SecretKey;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
@@ -20,22 +20,27 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class JwtService {
-    private static final String SECRET_KEY = "404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970";
-    private static final long EXPIRATION_TIME = 86400000; // 24 saat (ms cinsinden)
 
-    public String generateToken(Authentication authentication) {
+    @Value("${spring.datasource.jwtsecret}")
+    private String SECRET_KEY;
+
+    @Value("${spring.datasource.expirationtime}")
+    private long EXPIRATION_TIME;
+
+    public String generateToken(Authentication authentication, Long userId) {
+        HashMap<String, Object> claims = new HashMap<>();
+        claims.put("userId", userId);
         String username = authentication.getName();
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
-
-        // Rolleri virgülle ayrılmış bir string olarak ekleyelim (dahili Spring Security authority'lerini filtrele)
         String roles = authorities.stream()
-                .map(GrantedAuthority::getAuthority)
+                .map(GrantedAuthority::getAuthority).filter(Objects::nonNull)
                 .filter(a -> a.startsWith("ROLE_"))
                 .collect(Collectors.joining(","));
 
         return Jwts.builder()
                 .subject(username)
-                .claim("roles", roles) // Next.js tarafında rolleri buradan okuyacağız
+                .claim("roles", roles)
+                .claims(claims)
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
                 .signWith(getSigningKey())
@@ -47,7 +52,6 @@ public class JwtService {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    // Token içinden username çekme (ileride filtreleme yaparken lazım olacak)
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }
@@ -69,4 +73,13 @@ public class JwtService {
     private boolean isTokenExpired(String token) {
         return extractClaim(token, Claims::getExpiration).before(new Date());
     }
+
+    // 2. Token'dan ID Ayıklama (Senin istediğin o meşhur metot)
+    public Long extractUserId(String token) {
+        return extractClaim(token, claims -> claims.get("userId", Long.class));
+    }
+
+
+
+
 }

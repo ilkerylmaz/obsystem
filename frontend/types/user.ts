@@ -12,6 +12,6 @@ export interface User {
 
 export interface AuthResponse {
     token: string;
-    role: Role;
+    roles: string[];
     username: string;
 }

@@ -1,9 +1,28 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Navbar } from "@/components/layout/Navbar";
 import { useTranslation } from "@/lib/i18n";
 import { usePathname } from "next/navigation";
+import { getStudentInfo } from "../services/studentService";
+import { useAuth } from "@/hooks/useAuth";
+import { StudentProvider } from "../context/studentContext";
+import LessonProvider, { LessonItem } from "../context/lessonContext";
+
+import { getStudentLessonsById } from "../services/lessonService";
+type StudentInfo = {
+    studentNo?: string;
+    fullName?: string;
+    email?: string;
+    telephone?: string;
+    departmentName?: string;
+    advisorFullName?: string;
+    enrollmentYear?: number;
+    classYear?: number;
+    createdAt?: string;
+}
+
+
 
 function DashboardIcon() {
     return <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>;
@@ -32,7 +51,7 @@ const PAGE_TITLES: Record<string, string> = {
 export default function StudentLayout({ children }: { children: React.ReactNode }) {
     const { t } = useTranslation();
     const pathname = usePathname();
-
+    const { userId, role, loading } = useAuth();
     const items = [
         { label: t.nav.dashboard, href: "/student/dashboard", icon: <DashboardIcon /> },
         { label: t.nav.courses, href: "/student/courses", icon: <CoursesIcon /> },
@@ -43,15 +62,40 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
 
     const pageTitle = PAGE_TITLES[pathname] ?? "OBS";
 
+    const [studentInfo, setStudentInfo] = useState<StudentInfo | null>(null);
+    const [lessons, setLessons] = useState<LessonItem[]>([]);
+
+    useEffect(() => {
+        if (!userId) return;
+        getStudentLessonsById(userId).then((data) => {
+            const list = Array.isArray(data) ? data : data?.data ?? [];
+            setLessons(list ?? []);
+        });
+    }, [userId]);
+
+    useEffect(() => {
+        if (!userId) return;
+        getStudentInfo(userId)
+            .then(data => {
+                const info = Array.isArray(data) ? data[0] : data;
+                setStudentInfo(info ?? null);
+            });
+        console.log(studentInfo)
+    }, [userId]);
+
     return (
-        <div className="flex min-h-screen bg-[var(--surface-bg)]">
-            <Sidebar items={items} role="STUDENT" username="Ahmet Yılmaz" />
-            <div className="flex-1 flex flex-col overflow-hidden">
-                <Navbar pageTitle={pageTitle} />
-                <main className="flex-1 overflow-y-auto p-6">
-                    {children}
-                </main>
-            </div>
-        </div>
+        <LessonProvider lessons={lessons}>
+            <StudentProvider studentInfo={studentInfo ?? null}>
+                <div className="flex min-h-screen bg-[var(--surface-bg)]">
+                    <Sidebar items={items} role={(role as "STUDENT" | "TEACHER" | "ADMIN") || "STUDENT"} username={studentInfo?.fullName} />
+                    <div className="flex-1 flex flex-col overflow-hidden">
+                        <Navbar pageTitle={pageTitle} />
+                        <main className="flex-1 overflow-y-auto p-6">
+                            {children}
+                        </main>
+                    </div>
+                </div>
+            </StudentProvider>
+        </LessonProvider>
     );
 }
