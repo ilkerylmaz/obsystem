@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -19,7 +20,7 @@ public class TeacherControllerImpl implements TeacherController {
 
     @Override
     @GetMapping("/teacher/info/{teacherId}")
-    public List<TeacherInfDTO> getTeacherInfoById(@PathVariable Long teacherId) {
+    public TeacherInfDTO getTeacherInfoById(@PathVariable Long teacherId) {
         return teacherService.getTeacherInfoById(teacherId);
     }
 }

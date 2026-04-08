@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import com.ilker.obsystem.repository.TeacherRepository;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -17,9 +18,9 @@ public class TeacherServiceImpl implements TeacherService {
     private final TeacherMapper teacherMapper;
 
     @Override
-    public List<TeacherInfDTO> getTeacherInfoById(Long teacherId) {
-        List<Teacher> list = teacherRepository.getTeacherInfoById(teacherId);
-        return list.stream()
-                .map(teacherMapper::toTeacherInfDTO).toList();
+    public TeacherInfDTO getTeacherInfoById(Long teacherId) {
+        Teacher teacher = teacherRepository.getTeacherInfoById(teacherId)
+                .orElseThrow(() -> new RuntimeException("run time Error"));
+        return teacherMapper.toTeacherInfDTO(teacher);
     }
 }

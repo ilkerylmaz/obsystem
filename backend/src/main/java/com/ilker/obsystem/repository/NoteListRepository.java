@@ -9,9 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface NoteListRepository extends JpaRepository<NoteList, Long> {
     List<NoteList> findByStudentId(Long studentId);
-
     boolean existsByStudentIdAndTeacherLessonId(Long studentId, Long teacherLessonId);
-
     //bu sorgu çok basic düzeyde öğrencinin aldığı derslerin sayısını verir ama öğrencinin o dersi önceden mi almış
     //yoksa halen alıyor mu diye kontrol etmiyor.
     @Query("SELECT COUNT(id) FROM NoteList id WHERE id.student.id = :studentId")

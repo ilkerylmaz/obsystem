@@ -11,3 +11,13 @@ export const getStudentInfo = async (userId: Number) => {
         throw error;
     }
 };
+
+export const getStudentGpa = async (userId: Number) => {
+    try {
+        const response = await api.get(`/student/${userId}/gpa`);
+        return response.data;
+    } catch (error) {
+        console.error("student gpa çekilirken hata oluştu", error);
+        throw error;
+    }
+};

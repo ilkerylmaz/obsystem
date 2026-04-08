@@ -65,26 +65,6 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
     const [studentInfo, setStudentInfo] = useState<StudentInfo | null>(null);
     const [lessons, setLessons] = useState<LessonItem[]>([]);
 
-    useEffect(() => {
-        if (!userId) return;
-        getStudentLessonsById(userId).then((data) => {
-            const list = Array.isArray(data) ? data : data?.data ?? [];
-            setLessons(list ?? []);
-
-            console.log(list.count());
-        });
-    }, [userId]);
-
-    useEffect(() => {
-        if (!userId) return;
-        getStudentInfo(userId)
-            .then(data => {
-                const info = Array.isArray(data) ? data[0] : data;
-                setStudentInfo(info ?? null);
-            });
-        console.log(studentInfo)
-    }, [userId]);
-
     return (
         <LessonProvider lessons={lessons}>
             <StudentProvider studentInfo={studentInfo ?? null}>

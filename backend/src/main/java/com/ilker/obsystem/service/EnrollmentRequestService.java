@@ -4,9 +4,12 @@ import java.util.List;
 
 import com.ilker.obsystem.dto.request.CreateEnrollmentRequestDTO;
 import com.ilker.obsystem.dto.request.ReviewEnrollmentRequestDTO;
+import com.ilker.obsystem.dto.response.AvailableCourseDTO;
 import com.ilker.obsystem.dto.response.EnrollmentRequestResponseDTO;
 
 public interface EnrollmentRequestService {
+
+    List<AvailableCourseDTO> listAvailableCourses(Long studentId);
 
     EnrollmentRequestResponseDTO createRequest(Long studentId, CreateEnrollmentRequestDTO requestDTO);
 

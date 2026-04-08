@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.ilker.obsystem.controller.EnrollmentRequestController;
 import com.ilker.obsystem.dto.request.CreateEnrollmentRequestDTO;
 import com.ilker.obsystem.dto.request.ReviewEnrollmentRequestDTO;
+import com.ilker.obsystem.dto.response.AvailableCourseDTO;
 import com.ilker.obsystem.dto.response.EnrollmentRequestResponseDTO;
 import com.ilker.obsystem.service.EnrollmentRequestService;
 
@@ -27,6 +28,12 @@ import lombok.RequiredArgsConstructor;
 public class EnrollmentRequestControllerImpl implements EnrollmentRequestController {
 
     private final EnrollmentRequestService enrollmentRequestService;
+
+    @Override
+    @GetMapping("/student/{studentId}/available-courses")
+    public List<AvailableCourseDTO> listAvailableCourses(@PathVariable Long studentId) {
+        return enrollmentRequestService.listAvailableCourses(studentId);
+    }
 
     @Override
     @PostMapping("/student/{studentId}/request")

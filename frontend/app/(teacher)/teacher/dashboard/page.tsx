@@ -1,8 +1,12 @@
 "use client";
-import React from "react";
+import React, {useEffect, useMemo, useState} from "react";
 import { StatCard } from "@/components/ui/StatCard";
 import { Badge } from "@/components/ui/Badge";
 import { useTranslation } from "@/lib/i18n";
+import {getTeacherInfoById} from "@/app/services/teacherService";
+import {useAuth} from "@/hooks/useAuth";
+import {Teacher} from "@/types/Teacher";
+import {convertSegmentPathToStaticExportFilename} from "next/dist/shared/lib/segment-cache/segment-value-encoding";
 
 const courseBreakdown = [
     { id: 1, code: "BIL301", name: "Veri Yapıları", students: 42, semester: "2024-2025 Güz" },
@@ -21,11 +25,21 @@ function UsersIcon() {
 
 export default function TeacherDashboard() {
     const { t } = useTranslation();
+    const {userId, role} = useAuth();
+    const [infos, setInfos] = useState<Teacher>();
+    useEffect(() => {
+        if(!userId) return;
+        getTeacherInfoById(userId).then((res) => {
+            setInfos(res);
+
+        })
+    },[userId])
+
     return (
         <div className="space-y-6 animate-fade-in">
             <div>
                 <h2 className="page-title">{t.dashboard.teacher.title}</h2>
-                <p className="text-sm text-[var(--text-muted)] mt-1">Hoş geldiniz, Prof. Dr. Mehmet Öz. 2024-2025 Güz Dönemi.</p>
+                <p className="text-sm text-[var(--text-muted)] mt-1">Hoş geldiniz, {infos?.title} {infos?.fullName}.</p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

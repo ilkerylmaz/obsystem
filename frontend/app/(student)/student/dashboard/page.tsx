@@ -6,6 +6,7 @@ import { useTranslation } from "@/lib/i18n";
 import { useDateTime } from "@/hooks/useDateTime";
 import { useStudent } from "@/app/context/studentContext";
 import { getStudentLessonsById } from "@/app/services/lessonService";
+import { getStudentGpa } from "@/app/services/studentService";
 import { useAuth } from "@/hooks/useAuth";
 // Mock dataf
 const upcoming = [
@@ -32,11 +33,29 @@ export default function StudentDashboard() {
     const { t } = useTranslation();
     const { userId, role, loading } = useAuth();
     const [count, setCount] = useState(0);
+    const [gpa, setGpa] = useState<string>("0.00");
+
     useEffect(() => {
         if (!userId) return;
         getStudentLessonsById(userId).then((data) => {
             const list = Array.isArray(data) ? data : data?.data ?? [];
             setCount(list.length);
+        });
+
+        getStudentGpa(userId).then((data) => {
+            const list = Array.isArray(data) ? data : data?.data ?? [];
+            if (list.length > 0) {
+                // Calculate overall GPA across semesters
+                let totalCredits = 0;
+                let totalWeighted = 0;
+                list.forEach((sem: any) => {
+                    totalCredits += sem.totalCredits || 0;
+                    totalWeighted += sem.weightedSum || 0;
+                });
+                if (totalCredits > 0) {
+                    setGpa((totalWeighted / totalCredits).toFixed(2));
+                }
+            }
         });
     }, [userId]);
     return (
@@ -58,7 +77,7 @@ export default function StudentDashboard() {
                 />
                 <StatCard
                     title={t.dashboard.student.gpa}
-                    value="3.12"
+                    value={gpa}
                     icon={<StarIcon />}
                     color="green"
                     description="Genel ağırlıklı ortalama"

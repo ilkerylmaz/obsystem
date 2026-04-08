@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { authManager } from '../utils/authManager';
-import { JwtPayload } from '../types/auth';
+import { JwtPayload } from '../types/Auth';
 
 export const useAuth = () => {
     const [user, setUser] = useState<JwtPayload | null>(null);

@@ -17,7 +17,7 @@ import java.util.List;
 public class TeachLessonControllerImpl implements TeachLessonController {
     private final TeachLessonServiceImpl teachLessonService;
 
-
+    //yanlış yapı bu iptal notelist üzerinden çekim yapıcaz.
     @Override
     @GetMapping(path = "/student/{studentId}/lessons")
     public List<LessonsDTO> listLessons(@PathVariable Long studentId) {

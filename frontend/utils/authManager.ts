@@ -1,6 +1,6 @@
 import Cookies from 'js-cookie';
 import { jwtDecode } from 'jwt-decode';
-import { JwtPayload } from '../types/auth';
+import { JwtPayload } from '@/types/Auth';
 
 class AuthManager {
     private readonly TOKEN_KEY = 'token';

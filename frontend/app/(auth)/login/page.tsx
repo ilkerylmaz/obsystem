@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
-import { setToken } from "@/lib/auth";
-import { AuthResponse } from "@/types/user";
+import { setToken } from "@/lib/Auth";
+import { AuthResponse } from "@/types/User";
 
 const ROLE_PREFIX = "ROLE_";
 

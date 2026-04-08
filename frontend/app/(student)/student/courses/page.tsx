@@ -1,25 +1,53 @@
 "use client";
-import React, { use, useState } from "react";
+import React, {use, useEffect, useState} from "react";
 import { Table } from "@/components/ui/Table";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
-import { Select } from "@/components/ui/Input";
+import { Input, Select } from "@/components/ui/Input";
 import { useTranslation } from "@/lib/i18n";
-import { useLesson } from "@/app/context/lessonContext";
+import {LessonItem, useLesson} from "@/app/context/lessonContext";
+import { getStudentLessonsById } from "@/app/services/lessonService";
+import { getAvailableCourses, createStudentEnrollmentRequest } from "@/app/services/enrollmentService";
+import { useAuth } from "@/hooks/useAuth";
 
-
-const available = [
-    { id: 6, code: "BIL302", name: "Algoritmalar" },
-    { id: 7, code: "MAT301", name: "Sayısal Analiz" },
-    { id: 8, code: "BIL401", name: "Yapay Zeka" },
-];
 
 export default function CoursesPage() {
     const { t } = useTranslation();
     const [modalOpen, setModalOpen] = useState(false);
-    const { lessons } = useLesson();
+    const [lessons, setLessons] = useState<LessonItem[]>([]);
+    const [available, setAvailable] = useState<any[]>([]);
     const [selected, setSelected] = useState("");
+    const [requestNote, setRequestNote] = useState("");
+    const { userId } = useAuth();
+    
+    const fetchCourses = () => {
+        if (!userId) return;
+        getStudentLessonsById(userId).then((data) => {
+            const list = Array.isArray(data) ? data : data?.data ?? [];
+            setLessons(list ?? []);
+        });
+        getAvailableCourses(userId).then((data) => {
+             const list = Array.isArray(data) ? data : data?.data ?? [];
+             setAvailable(list);
+        });
+    };
+
+    useEffect(() => {
+        fetchCourses();
+    }, [userId]);
+
+    const handleRegister = async () => {
+         if (!userId || !selected) return;
+         try {
+             await createStudentEnrollmentRequest(userId, Number(selected), requestNote);
+             alert("Kayıt talebi başarıyla oluşturuldu.");
+             setModalOpen(false);
+             fetchCourses(); // refresh data
+         } catch (error) {
+             alert("Talep oluşturulurken hata oluştu. " + error);
+         }
+    };
 
     const enrolled = lessons.map((l, i) => ({
         id: i + 1,
@@ -83,7 +111,7 @@ export default function CoursesPage() {
                 footer={
                     <>
                         <Button variant="outline" onClick={() => setModalOpen(false)}>{t.common.cancel}</Button>
-                        <Button variant="primary" onClick={() => setModalOpen(false)}>{t.courses.registerBtn}</Button>
+                        <Button variant="primary" onClick={handleRegister}>{t.courses.registerBtn}</Button>
                     </>
                 }
             >
@@ -98,11 +126,17 @@ export default function CoursesPage() {
                     >
                         <option value="">— Ders Seçin —</option>
                         {available.map((c) => (
-                            <option key={c.id} value={String(c.id)}>
-                                {c.code} — {c.name}
+                            <option key={c.teacherLessonId} value={String(c.teacherLessonId)}>
+                                {c.courseCode} — {c.lessonName} ({c.teacherFullName}) 
                             </option>
                         ))}
                     </Select>
+                    <Input
+                        label="Talep Notu (İsteğe bağlı)"
+                        placeholder="Örn: Mezuniyet durumum nedeniyle..."
+                        value={requestNote}
+                        onChange={(e) => setRequestNote(e.target.value)}
+                    />
                 </div>
             </Modal>
         </div>

@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslation } from "@/lib/i18n";
-import { removeToken } from "@/lib/auth";
+import { removeToken } from "@/lib/Auth";
 import { useRouter } from "next/navigation";
 
 interface NavItem {

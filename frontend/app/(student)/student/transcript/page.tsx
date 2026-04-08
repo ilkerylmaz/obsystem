@@ -1,7 +1,11 @@
 "use client";
-import React from "react";
-import { GradeBadge, AbsenceBadge } from "@/components/ui/Badge";
-import { useTranslation } from "@/lib/i18n";
+import React, {useEffect, useState} from "react";
+import {AbsenceBadge, GradeBadge} from "@/components/ui/Badge";
+import {useTranslation} from "@/lib/i18n";
+import {getStudentNotesById} from "@/app/services/notelistService";
+import {Notelist} from "@/types/Notelist";
+import {useAuth} from "@/hooks/useAuth";
+import {NotelistStatus} from "@/app/enum/NotelistStatus";
 
 const transcriptData = [
     {
@@ -29,6 +33,17 @@ function Num({ v }: { v: number | null }) {
 
 export default function TranscriptPage() {
     const { t } = useTranslation();
+    const {userId, loading} = useAuth();
+    const [notes, setNotes] = useState<Notelist[]>([]);
+    useEffect(() => {
+        if(!userId) return;
+        getStudentNotesById(userId).then((data) => {
+            const normalizedList = Array.isArray(data) ? data : (data ? [data] : [])
+            setNotes(normalizedList);
+            console.log(normalizedList)
+        })
+            .catch((err) => console.log(err));
+    },[userId])
     return (
         <div className="space-y-6 animate-fade-in">
             <div>
@@ -36,10 +51,10 @@ export default function TranscriptPage() {
                 <p className="text-sm text-[var(--text-muted)] mt-1">Tüm dönemler</p>
             </div>
 
-            {transcriptData.map((sem) => (
-                <div key={sem.semester} className="obs-card">
+            {notes.map((sem) => (
+                <div key={sem.semesterName} className="obs-card">
                     <div className="px-5 py-4 border-b border-[var(--surface-border)] bg-[var(--surface-muted)]">
-                        <h3 className="section-title">{sem.semester}</h3>
+                        <h3 className="section-title">{sem.semesterName}</h3>
                     </div>
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm border-collapse">
@@ -51,23 +66,23 @@ export default function TranscriptPage() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {sem.courses.map((c, idx) => (
+                                {sem.notes.map((c, idx) => (
                                     <tr
                                         key={c.id}
                                         className={`border-b border-[var(--surface-border)] last:border-none hover:bg-primary-50 transition-colors ${idx % 2 === 1 ? "bg-[var(--surface-muted)]/40" : ""}`}
                                     >
-                                        <td className="px-4 py-3 font-mono font-semibold text-primary-700">{c.code}</td>
-                                        <td className="px-4 py-3"><Num v={c.midterm} /></td>
-                                        <td className="px-4 py-3"><Num v={c.final} /></td>
-                                        <td className="px-4 py-3"><Num v={c.makeup} /></td>
+                                        <td className="px-4 py-3 font-mono font-semibold text-primary-700">{c.courseCode}</td>
+                                        <td className="px-4 py-3">{c.midtermNote}</td>
+                                        <td className="px-4 py-3">{c.finalNote}</td>
+                                        <td className="px-4 py-3"><Num v={c.makeupExam!} /></td>
                                         <td className="px-4 py-3 font-medium">{c.average?.toFixed(1) ?? "—"}</td>
-                                        <td className="px-4 py-3"><GradeBadge grade={c.grade} /></td>
+                                        <td className="px-4 py-3"><GradeBadge grade={c.grade!} /></td>
                                         <td className="px-4 py-3">
-                                            <span className={`text-xs font-semibold ${c.status === "GEÇTİ" ? "text-green-600" : "text-red-600"}`}>
+                                            <span className={`text-xs font-semibold ${c.status === NotelistStatus.FAILED ? "text-red-600" : "text-green-600" }`}>
                                                 {c.status}
                                             </span>
                                         </td>
-                                        <td className="px-4 py-3"><AbsenceBadge count={c.absences} /></td>
+                                        <td className="px-4 py-3"><AbsenceBadge count={c.absenteeismCount!} /></td>
                                     </tr>
                                 ))}
                             </tbody>

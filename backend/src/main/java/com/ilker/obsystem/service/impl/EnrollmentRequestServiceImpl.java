@@ -3,6 +3,7 @@ package com.ilker.obsystem.service.impl;
 import com.ilker.obsystem.dto.request.CreateEnrollmentRequestDTO;
 import com.ilker.obsystem.dto.request.ReviewEnrollmentRequestDTO;
 import com.ilker.obsystem.dto.response.EnrollmentRequestResponseDTO;
+import com.ilker.obsystem.dto.response.AvailableCourseDTO;
 import com.ilker.obsystem.entity.EnrollmentRequest;
 import com.ilker.obsystem.entity.NoteList;
 import com.ilker.obsystem.entity.Student;
@@ -22,6 +23,8 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
+
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -66,6 +69,43 @@ public class EnrollmentRequestServiceImpl implements EnrollmentRequestService {
 
         EnrollmentRequest saved = enrollmentRequestRepository.save(enrollmentRequest);
         return enrollmentRequestMapper.toResponse(saved);
+    }
+
+    @Override
+    public List<AvailableCourseDTO> listAvailableCourses(Long studentId) {
+        Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new RuntimeException("Öğrenci bulunamadı"));
+
+        // Only return courses from active semester where department matches
+        // For simplicity, just finding all active teacher lessons and filtering.
+        List<TeacherLesson> allLessons = teachLessonRepository.findAll();
+        
+        // Find existing enrollments
+        Set<Long> takenLessonIds = noteListRepository.findByStudentId(studentId).stream()
+                .map(note -> note.getTeacherLesson().getId())
+                .collect(Collectors.toSet());
+
+        // Find pending or approved requests
+        Set<Long> requestedLessonIds = enrollmentRequestRepository.findByStudentIdOrderByRequestedAtDesc(studentId).stream()
+                .filter(req -> req.getStatus() == RequestStatus.PENDING || req.getStatus() == RequestStatus.APPROVED)
+                .map(req -> req.getTeacherLesson().getId())
+                .collect(Collectors.toSet());
+
+        return allLessons.stream()
+                .filter(tl -> Boolean.TRUE.equals(tl.getIsActive()) && Boolean.TRUE.equals(tl.getSemester().getIsActive()))
+                .filter(tl -> !takenLessonIds.contains(tl.getId()) && !requestedLessonIds.contains(tl.getId()))
+                .filter(tl -> tl.getLesson().getDepartment() == null || tl.getLesson().getDepartment().getId().equals(student.getDepartment().getId()))
+                .map(tl -> new AvailableCourseDTO(
+                        tl.getId(),
+                        tl.getLesson().getCourseCode(),
+                        tl.getLesson().getLessonName(),
+                        tl.getLesson().getCredit(),
+                        tl.getLesson().getEcts(),
+                        tl.getTeacher().getFullName(),
+                        tl.getQuota(),
+                        tl.getSemester().getSemesterName()
+                ))
+                .toList();
     }
 
     @Override

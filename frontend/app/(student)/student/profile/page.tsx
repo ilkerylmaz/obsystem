@@ -1,11 +1,13 @@
 "use client";
-import React, { useState } from "react";
+import React, {useEffect, useState} from "react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
 import { Modal } from "@/components/ui/Modal";
 import { useTranslation } from "@/lib/i18n";
-import { useStudent } from "@/app/context/studentContext";
+import {StudentInfo, useStudent} from "@/app/context/studentContext";
+import {useAuth} from "@/hooks/useAuth";
+import {getStudentInfo} from "@/app/services/studentService";
 
 
 function InfoRow({ label, value }: { label: string; value: string }) {
@@ -19,9 +21,19 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 
 export default function StudentProfilePage() {
     const { t } = useTranslation();
-    const { studentInfo } = useStudent();
     const [editOpen, setEditOpen] = useState(false);
+    const {userId} = useAuth();
+    const [studentInfo, setStudentInfo] = useState<StudentInfo | null>(null);
     const [form, setForm] = useState({ fullname: studentInfo?.fullName, telephone: studentInfo?.telephone });
+
+    useEffect(() => {
+        if (!userId) return;
+        getStudentInfo(userId)
+            .then(data => {
+                const info = Array.isArray(data) ? data[0] : data;
+                setStudentInfo(info ?? null);
+            });
+    }, [userId]);
 
     return (
         <div className="space-y-6 animate-fade-in max-w-2xl">

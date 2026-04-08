@@ -1,5 +1,6 @@
 package com.ilker.obsystem.mapper;
 
+import com.ilker.obsystem.dto.request.AddStudentDTO;
 import com.ilker.obsystem.dto.response.StudentCourseDTO;
 import com.ilker.obsystem.dto.response.StudentInfDTO;
 import com.ilker.obsystem.entity.NoteList;
@@ -25,6 +26,13 @@ public interface StudentMapper {
     @Mapping(source = "user.email", target = "email")
     StudentInfDTO toStudentInfDto(Student student);
 
+    //add student mapper
+    @Mapping(target = "id", ignore = true)
+    @Mapping(source = "departmentId", target = "department.id")
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "enrollmentYear", ignore = true)
+    @Mapping(target = "classYear", ignore = true)
+    Student toAddStudentDto(AddStudentDTO addStudentDTO);
 
 
 }
