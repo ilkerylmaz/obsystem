@@ -1,10 +1,12 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Navbar } from "@/components/layout/Navbar";
 import { useTranslation } from "@/lib/i18n";
 import { usePathname } from "next/navigation";
-
+import { useAuth } from "@/hooks/useAuth";
+import { getTeacherInfoById } from "../services/teacherService";
+import { Teacher } from "@/types/Teacher";
 function DashboardIcon() {
     return <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>;
 }
@@ -28,6 +30,16 @@ const PAGE_TITLES: Record<string, string> = {
 export default function TeacherLayout({ children }: { children: React.ReactNode }) {
     const { t } = useTranslation();
     const pathname = usePathname();
+    const { userId } = useAuth();
+    const [info, setInfo] = useState<Teacher | null>(null);
+    useEffect(() => {
+        if (!userId) return;
+        getTeacherInfoById(userId).then((data) => {
+            const info = Array.isArray(data) ? data[0] : data;
+            setInfo(info ?? null);
+        })
+        console.log(info)
+    }, [userId])
 
     const items = [
         { label: t.nav.dashboard, href: "/teacher/dashboard", icon: <DashboardIcon /> },
@@ -40,7 +52,7 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
 
     return (
         <div className="flex min-h-screen bg-[var(--surface-bg)]">
-            <Sidebar items={items} role="TEACHER" username="Prof. Dr. Mehmet Öz" />
+            <Sidebar items={items} role="TEACHER" username={[info?.title, info?.fullName].filter(Boolean).join(" ")} />
             <div className="flex-1 flex flex-col overflow-hidden">
                 <Navbar pageTitle={pageTitle} />
                 <main className="flex-1 overflow-y-auto p-6">

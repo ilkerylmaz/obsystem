@@ -135,7 +135,7 @@ export default function GradesPage() {
                                     {grades.map((s, idx) => (
                                         <tr key={s.noteListId} className={`border-b border-[var(--surface-border)] last:border-none ${idx % 2 === 1 ? "bg-[var(--surface-muted)]/40" : ""}`}>
                                             <td className="px-4 py-3 font-mono text-xs text-primary-700">{s.studentNo}</td>
-                                            <td className="px-4 py-3 font-medium">{s.name} {s.surname}</td>
+                                            <td className="px-4 py-3 font-medium">{s.fullName}</td>
                                             {(["midtermNote", "finalNote", "makeupExam"] as const).map((field) => (
                                                 <td key={field} className="px-4 py-3 text-center">
                                                     <input

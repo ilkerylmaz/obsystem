@@ -2,8 +2,10 @@
 import React, { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { useTranslation } from "@/lib/i18n";
-import { getTeacherInfoById } from "@/app/services/teacherService";
+import { getTeacherDashboardStats, getTeacherInfoById } from "@/app/services/teacherService";
 import { useAuth } from "@/hooks/useAuth";
+import { Teacher } from "@/types/Teacher";
+
 const teacher = {
     fullname: "Prof. Dr. Mehmet Öz",
     email: "mehmet.oz@universite.edu.tr",
@@ -12,20 +14,7 @@ const teacher = {
     joinedAt: "2012-09-01",
 };
 
-type TeacherInfo = {
-    fullName?: string;
-    title?: string;
-    email?: string;
-    createdAt?: string
-    departmentName?: string;
-    facultyName?: string;
-}
 
-const courses = [
-    { id: 1, code: "BIL301", name: "Veri Yapıları", semester: "Güz", students: 42 },
-    { id: 2, code: "BIL101", name: "Programlamaya Giriş", semester: "Güz", students: 68 },
-    { id: 3, code: "BIL302", name: "Algoritmalar", semester: "Güz", students: 35 },
-];
 
 function InfoRow({ label, value }: { label: string; value: string }) {
     return (
@@ -39,16 +28,24 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 export default function TeacherProfilePage() {
     const { t } = useTranslation();
     const { userId, loading } = useAuth();
-    const [info, setInfo] = useState<TeacherInfo | null>(null);
-
+    const [info, setInfo] = useState<Teacher | null>(null);
+    const [courses, setCourses] = useState<any[]>([]);
     useEffect(() => {
         if (!userId) return;
         getTeacherInfoById(userId).then((data) => {
             const info = Array.isArray(data) ? data[0] : data;
             setInfo(info ?? null);
         })
-        console.log(info)
+
+        getTeacherDashboardStats(userId).then(res => {
+            const data = res.data || res;
+            if (data?.courses) {
+                setCourses(data.courses);
+            }
+        })
     }, [userId])
+
+
 
     return (
         <div className="space-y-6 animate-fade-in max-w-2xl">
@@ -90,12 +87,12 @@ export default function TeacherProfilePage() {
                     {courses.map((c) => (
                         <div key={c.id} className="px-5 py-4 flex items-center justify-between hover:bg-primary-50 transition-colors">
                             <div>
-                                <span className="font-mono font-semibold text-sm text-primary-700">{c.code}</span>
-                                <span className="ml-2 text-sm text-[var(--text-primary)]">{c.name}</span>
+                                <span className="font-mono font-semibold text-sm text-primary-700">{c.courseCode}</span>
+                                <span className="ml-2 text-sm text-[var(--text-primary)]">{c.lessonName}</span>
                             </div>
                             <div className="flex items-center gap-3">
-                                <Badge variant="gray" size="sm">{c.semester}</Badge>
-                                <span className="text-sm font-bold text-[var(--text-secondary)]">{c.students} öğrenci</span>
+                                <Badge variant="gray" size="sm">{c.semesterName}</Badge>
+                                <span className="text-sm font-bold text-[var(--text-secondary)]">{c.enrolledStudentCount} öğrenci</span>
                             </div>
                         </div>
                     ))}
