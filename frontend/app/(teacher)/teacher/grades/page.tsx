@@ -1,52 +1,80 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Select } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { useTranslation } from "@/lib/i18n";
-
-const courses = [
-    { id: 1, code: "BIL301", name: "Veri Yapıları" },
-    { id: 2, code: "BIL101", name: "Programlamaya Giriş" },
-    { id: 3, code: "BIL302", name: "Algoritmalar" },
-];
-
-const studentsByCourse: Record<number, { id: number; no: string; name: string; midterm: string; final: string; makeup: string }[]> = {
-    1: [
-        { id: 1, no: "2021050034", name: "Ahmet Yılmaz", midterm: "75", final: "82", makeup: "" },
-        { id: 2, no: "2021050035", name: "Fatma Çelik", midterm: "60", final: "55", makeup: "" },
-        { id: 3, no: "2021050036", name: "Mehmet Kara", midterm: "90", final: "88", makeup: "" },
-        { id: 4, no: "2021050037", name: "Zeynep Arslan", midterm: "45", final: "30", makeup: "65" },
-    ],
-    2: [
-        { id: 5, no: "2022050001", name: "Ali Demir", midterm: "70", final: "75", makeup: "" },
-        { id: 6, no: "2022050002", name: "Elif Öz", midterm: "85", final: "90", makeup: "" },
-    ],
-    3: [
-        { id: 7, no: "2020050010", name: "Burak Şahin", midterm: "55", final: "60", makeup: "" },
-    ],
-};
+import { useAuth } from "@/hooks/useAuth";
+import { getTeacherDashboardStats, getStudentsByTeacherLesson, updateGrades } from "@/app/services/teacherService";
 
 export default function GradesPage() {
     const { t } = useTranslation();
+    const { userId } = useAuth();
+    const [courses, setCourses] = useState<any[]>([]);
     const [selectedCourse, setSelectedCourse] = useState<number | null>(null);
-    const [grades, setGrades] = useState<typeof studentsByCourse[1]>([]);
+    const [grades, setGrades] = useState<any[]>([]);
+    const [loadingSave, setLoadingSave] = useState(false);
 
-    function handleCourseChange(id: number) {
-        setSelectedCourse(id);
-        setGrades(JSON.parse(JSON.stringify(studentsByCourse[id] ?? [])));
+    useEffect(() => {
+        if (!userId) return;
+        // Fetch courses for the teacher
+        getTeacherDashboardStats(userId).then(res => {
+            const data = res.data || res;
+            if (data?.courses) {
+                setCourses(data.courses);
+            }
+        });
+    }, [userId]);
+
+    function handleCourseChange(teacherLessonId: number) {
+        setSelectedCourse(teacherLessonId);
+        if (!teacherLessonId) {
+            setGrades([]);
+            return;
+        }
+
+        getStudentsByTeacherLesson(teacherLessonId).then(res => {
+            const data = res.data || res;
+            if (Array.isArray(data)) {
+                setGrades(data);
+            } else {
+                setGrades([]);
+            }
+        });
     }
 
-    function updateGrade(idx: number, field: "midterm" | "final" | "makeup", value: string) {
+    function updateGradeRow(idx: number, field: "midtermNote" | "finalNote" | "makeupExam", value: string) {
         const next = [...grades];
-        next[idx] = { ...next[idx], [field]: value };
+        next[idx] = { ...next[idx], [field]: value === "" ? null : Number(value) };
         setGrades(next);
     }
+
+    const saveGrades = async () => {
+        if (!grades.length) return;
+        setLoadingSave(true);
+
+        try {
+            const payload = grades.map(g => ({
+                noteListId: g.noteListId,
+                midtermNote: g.midtermNote,
+                finalNote: g.finalNote,
+                makeupExam: g.makeupExam
+            }));
+
+            await updateGrades(payload);
+            alert("Notlar başarıyla kaydedildi!");
+        } catch (error) {
+            console.error(error);
+            alert("Notlar kaydedilirken bir hata oluştu.");
+        } finally {
+            setLoadingSave(false);
+        }
+    };
 
     return (
         <div className="space-y-6 animate-fade-in">
             <div>
                 <h2 className="page-title">{t.grades.title}</h2>
-                <p className="text-sm text-[var(--text-muted)] mt-1">Öğrencilere not girebilirsiniz</p>
+                <p className="text-sm text-[var(--text-muted)] mt-1">Sınıf listesinden öğrencilere not verebilir veya güncelleyebilirsiniz.</p>
             </div>
 
             {/* Ders seçimi */}
@@ -59,7 +87,9 @@ export default function GradesPage() {
                 >
                     <option value="">— Ders Seçin —</option>
                     {courses.map((c) => (
-                        <option key={c.id} value={c.id}>{c.code} — {c.name}</option>
+                        <option key={c.teacherLessonId} value={c.teacherLessonId}>
+                            {c.courseCode} — {c.lessonName}
+                        </option>
                     ))}
                 </Select>
             </div>
@@ -69,13 +99,14 @@ export default function GradesPage() {
                 <div className="obs-card">
                     <div className="px-5 py-4 border-b border-[var(--surface-border)] flex items-center justify-between">
                         <h3 className="section-title">
-                            {courses.find((c) => c.id === selectedCourse)?.code} — Öğrenci Listesi
+                            {courses.find((c) => c.teacherLessonId === selectedCourse)?.courseCode} — Öğrenci Listesi
                             <span className="ml-2 text-xs font-normal text-[var(--text-muted)]">({grades.length} öğrenci)</span>
                         </h3>
                         <Button
                             variant="primary"
                             size="sm"
-                            onClick={() => alert("Notlar kaydedildi! (TODO: API bağlantısı)")}
+                            loading={loadingSave}
+                            onClick={saveGrades}
                             icon={
                                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
@@ -93,27 +124,28 @@ export default function GradesPage() {
                             <table className="w-full text-sm border-collapse">
                                 <thead>
                                     <tr className="border-b border-[var(--surface-border)] bg-[var(--surface-muted)]">
-                                        {[t.grades.studentNo, t.grades.student, t.grades.midterm, t.grades.final, t.grades.makeup].map((h) => (
-                                            <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wide">{h}</th>
-                                        ))}
+                                        <th className="text-left px-4 py-3 text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wide">{t.grades.studentNo}</th>
+                                        <th className="text-left px-4 py-3 text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wide">{t.grades.student}</th>
+                                        <th className="text-center px-4 py-3 text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wide">{t.grades.midterm}</th>
+                                        <th className="text-center px-4 py-3 text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wide">{t.grades.final}</th>
+                                        <th className="text-center px-4 py-3 text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wide">{t.grades.makeup}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {grades.map((s, idx) => (
-                                        <tr key={s.id} className={`border-b border-[var(--surface-border)] last:border-none ${idx % 2 === 1 ? "bg-[var(--surface-muted)]/40" : ""}`}>
-                                            <td className="px-4 py-3 font-mono text-xs text-primary-700">{s.no}</td>
-                                            <td className="px-4 py-3 font-medium">{s.name}</td>
-                                            {(["midterm", "final", "makeup"] as const).map((field) => (
-                                                <td key={field} className="px-4 py-3">
+                                        <tr key={s.noteListId} className={`border-b border-[var(--surface-border)] last:border-none ${idx % 2 === 1 ? "bg-[var(--surface-muted)]/40" : ""}`}>
+                                            <td className="px-4 py-3 font-mono text-xs text-primary-700">{s.studentNo}</td>
+                                            <td className="px-4 py-3 font-medium">{s.name} {s.surname}</td>
+                                            {(["midtermNote", "finalNote", "makeupExam"] as const).map((field) => (
+                                                <td key={field} className="px-4 py-3 text-center">
                                                     <input
                                                         type="number"
                                                         min={0}
                                                         max={100}
-                                                        value={s[field]}
-                                                        onChange={(e) => updateGrade(idx, field, e.target.value)}
+                                                        value={s[field] ?? ""}
+                                                        onChange={(e) => updateGradeRow(idx, field, e.target.value)}
                                                         placeholder="—"
-                                                        className="w-20 rounded border border-[var(--surface-border)] px-2 py-1 text-sm text-center
-                              focus:outline-none focus:ring-2 focus:ring-primary-400 hover:border-primary-300 transition-colors"
+                                                        className="w-20 rounded border border-[var(--surface-border)] px-2 py-1 text-sm text-center focus:outline-none focus:ring-2 focus:ring-primary-400 hover:border-primary-300 transition-colors"
                                                     />
                                                 </td>
                                             ))}

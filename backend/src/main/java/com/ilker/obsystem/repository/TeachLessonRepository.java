@@ -9,4 +9,5 @@ import com.ilker.obsystem.entity.TeacherLesson;
 public interface TeachLessonRepository extends JpaRepository<TeacherLesson, Long> {
 	boolean existsByLesson_CourseCode(String courseCode);
 	List<TeacherLesson> findByLesson_Id(Long lessonId);
+	List<TeacherLesson> findByTeacherIdAndIsActiveTrue(Long teacherId);
 }
